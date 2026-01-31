@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Detect MOC bloat - find Maps of Content with too many direct links.
-Usage: python3 detect_moc_bloat.py [vault_path] [--threshold N] [--json]
+
+Usage:
+    ./detect_moc_bloat.py [vault_path] [--threshold N] [--json]
+    python3 detect_moc_bloat.py [vault_path] [--threshold N] [--json]
 
 MOCs with 50+ links are considered bloated and should be split.
 Default threshold: 50 (warning at 40)

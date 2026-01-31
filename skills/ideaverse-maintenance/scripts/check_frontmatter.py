@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Check for missing frontmatter properties in notes.
-Usage: python3 check_frontmatter.py [vault_path] [--strict] [--json]
+
+Usage:
+    ./check_frontmatter.py [vault_path] [--strict] [--json]
+    python3 check_frontmatter.py [vault_path] [--strict] [--json]
 
 Checks for:
 - Missing 'up:' property (except for Home and root notes)

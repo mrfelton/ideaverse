@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Validate squeeze points - find unstructured note clusters that need MOCs.
-Usage: python3 validate_squeeze_points.py [vault_path] [--threshold N] [--json]
+
+Usage:
+    ./validate_squeeze_points.py [vault_path] [--threshold N] [--json]
+    python3 validate_squeeze_points.py [vault_path] [--threshold N] [--json]
 
 A squeeze point occurs when 10+ notes reference the same concept without
 a dedicated MOC to organize them. This script identifies these opportunities.

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Find broken links - wikilinks that point to non-existent notes.
-Usage: python3 find_broken_links.py [vault_path]
+
+Usage:
+    ./find_broken_links.py [vault_path]
+    python3 find_broken_links.py [vault_path]
 
 This script audits only vault content, excluding:
 - node_modules/ directories (package dependencies)

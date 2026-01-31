@@ -7,31 +7,39 @@ description: Keep Ideaverse vaults healthy through audits, diagnostics, and main
 
 Run audits, diagnostics, and maintenance workflows to keep Ideaverse-based Obsidian vaults healthy. Assume familiarity with the core Ideaverse methodology.
 
+## Requirements
+
+- Python 3.8 or later
+- No external dependencies (uses only Python standard library)
+
 ## Vault Health Diagnostics
 
 ### Quick Health Check
 
-Run these in sequence for a complete vault audit:
+Run these in sequence for a complete vault audit. Scripts can be invoked directly (if executable) or via `python3`:
 
 ```bash
 # 1. Find broken links (critical)
-python3 scripts/find_broken_links.py /path/to/vault
+./scripts/find_broken_links.py /path/to/vault
+# or: python3 scripts/find_broken_links.py /path/to/vault
 
 # 2. Find orphan notes (structural)
-python3 scripts/find_orphans.py /path/to/vault
+./scripts/find_orphans.py /path/to/vault
 
 # 3. Check frontmatter compliance (consistency)
-python3 scripts/check_frontmatter.py /path/to/vault
+./scripts/check_frontmatter.py /path/to/vault
 
 # 4. Detect MOC bloat (scale)
-python3 scripts/detect_moc_bloat.py /path/to/vault
+./scripts/detect_moc_bloat.py /path/to/vault
 
 # 5. Find squeeze points (opportunities)
-python3 scripts/validate_squeeze_points.py /path/to/vault
+./scripts/validate_squeeze_points.py /path/to/vault
 
 # 6. Suggest archival candidates (hygiene)
-python3 scripts/suggest_archival.py /path/to/vault
+./scripts/suggest_archival.py /path/to/vault
 ```
+
+> **Note:** If `python3` is not available on your system, use `python` if it points to Python 3.x.
 
 ### Script Descriptions
 

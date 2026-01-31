@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Suggest notes for archival based on staleness indicators.
-Usage: python3 suggest_archival.py [vault_path] [--days N] [--json]
+
+Usage:
+    ./suggest_archival.py [vault_path] [--days N] [--json]
+    python3 suggest_archival.py [vault_path] [--days N] [--json]
 
 Staleness indicators:
 - No modifications in N days (default: 180)

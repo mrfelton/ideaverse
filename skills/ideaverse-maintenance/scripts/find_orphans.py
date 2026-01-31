@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Find orphan notes - notes with no incoming links from other notes.
-Usage: python3 find_orphans.py [vault_path]
+
+Usage:
+    ./find_orphans.py [vault_path]
+    python3 find_orphans.py [vault_path]
 
 This script audits only vault content, excluding:
 - node_modules/ directories (package dependencies)
