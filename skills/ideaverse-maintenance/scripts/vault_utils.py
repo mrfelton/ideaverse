@@ -84,12 +84,18 @@ def _get_builtin_patterns() -> List[str]:
     These are always applied, even if .gitignore doesn't exist.
     
     Covers:
+    - Hidden directories (anything starting with . except .obsidian which is handled separately)
     - Package managers (node_modules, pip, etc.)
     - Build outputs (dist, build, .next, .vite, etc.)
     - Version control (.git, .github)
     - IDE/OS files (.vscode, .DS_Store, etc.)
     """
     return [
+        # Hidden directories - configuration/tooling, not vault content
+        # Matches any folder starting with . at any level
+        '.*/**',
+        '.*',
+        
         # Package managers - primary causes of false positives
         '**/node_modules',
         '**/node_modules/**',
@@ -104,25 +110,13 @@ def _get_builtin_patterns() -> List[str]:
         'dist/**',
         'build/**',
         'out/**',
-        '.next/**',
-        '.vite/**',
-        '.cache/**',
-        '.parcel-cache/**',
         
-        # Version control & environment
-        '.git/**',
-        '.github/**',
-        '.devenv/**',
-        
-        # IDE & editor files
-        '.vscode/**',
-        '.obsidian/**',
-        '.idea/**',
+        # OS files
+        '.DS_Store',
+        'Thumbs.db',
         '*.swp',
         '*.swo',
         '*~',
-        '.DS_Store',
-        'Thumbs.db',
     ]
 
 
@@ -180,10 +174,16 @@ def _path_matches_patterns(rel_path: str, patterns: List[str]) -> bool:
     Check if a relative path matches any of the gitignore patterns.
     Uses fnmatch for glob matching (standard Python library).
     
+    Special handling:
+    - Hidden directories (starting with .) are excluded at any level
+    - Directory-level matching for patterns like '**/node_modules/**'
+    - File-level matching for specific patterns
+    
     Handles both file-level and directory-level matches:
     - 'node_modules/package/README.md' matches '**/node_modules/**'
     - 'dist/index.html' matches 'dist/**'
     - '.git/config' matches '.git/**'
+    - '.agents/skills/file.md' matches '.*/**' (hidden dir at any level)
     
     Args:
         rel_path: Relative path from vault root (forward slashes)
@@ -195,6 +195,15 @@ def _path_matches_patterns(rel_path: str, patterns: List[str]) -> bool:
     # Normalize to forward slashes for consistent matching
     rel_path = rel_path.replace('\\', '/')
     
+    # Quick check: Exclude any path with hidden directories (starting with .)
+    # This catches .agents, .github, .codex, .ralph-tui, etc.
+    path_parts = rel_path.split('/')
+    for part in path_parts:
+        if part.startswith('.') and part != '.' and part != '..':
+            # Hidden directory found - exclude this path
+            # (skip special directories . and ..)
+            return True
+    
     for pattern in patterns:
         # Direct file/path match
         if fnmatch.fnmatch(rel_path, pattern):
@@ -202,14 +211,13 @@ def _path_matches_patterns(rel_path: str, patterns: List[str]) -> bool:
         
         # Check each path component for directory matches
         # This helps match patterns like '*/node_modules/**' or '**/dist/**'
-        parts = rel_path.split('/')
-        for i, part in enumerate(parts):
+        for i, part in enumerate(path_parts):
             # Match against bare pattern (e.g., 'dist' from 'dist/**')
             bare_pattern = pattern.strip('*').strip('/')
             if fnmatch.fnmatch(part, bare_pattern):
                 # Also check if everything after this part should be excluded
                 # e.g., if 'node_modules' matched, exclude everything under it
-                if i < len(parts) - 1 or '/**' in pattern:
+                if i < len(path_parts) - 1 or '/**' in pattern:
                     return True
     
     return False
