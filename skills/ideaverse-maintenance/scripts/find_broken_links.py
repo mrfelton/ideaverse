@@ -2,12 +2,19 @@
 """
 Find broken links - wikilinks that point to non-existent notes.
 Usage: python3 find_broken_links.py [vault_path]
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts (dist/, build/, .next/, etc.)
+- Version control (.git/, .github/)
+- Other non-vault content matching .gitignore
 """
 
 import os
 import re
 import sys
 from pathlib import Path
+from vault_utils import load_gitignore_patterns, is_vault_content
 
 def get_vault_path():
     if len(sys.argv) > 1:
@@ -24,21 +31,21 @@ def extract_wikilinks(content):
 
 def find_broken_links(vault_path):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     
-    # Build set of all existing note names
+    # Build set of all existing note names (vault content only)
     existing_notes = set()
-    skip_dirs = {'.obsidian', '.git', '.github'}
     
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         existing_notes.add(md_file.stem)
     
-    # Find broken links
+    # Find broken links (vault content only)
     broken = []  # (source_file, broken_link)
     
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         try:

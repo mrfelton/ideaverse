@@ -8,6 +8,11 @@ Staleness indicators:
 - Few/no outgoing links (isolated content)
 - Located in Efforts/ and potentially complete
 - Minimal content (< 100 words)
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts and documentation files  
+- Other non-vault content matching .gitignore
 """
 
 import os
@@ -16,6 +21,7 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
+from vault_utils import load_gitignore_patterns, is_vault_content
 
 def get_args():
     args = {
@@ -121,16 +127,16 @@ def calculate_staleness_score(note_info, stale_days):
 
 def suggest_archival(vault_path, stale_days):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     now = datetime.now()
     candidates = []
     
-    skip_dirs = {'.obsidian', '.git', '.github', 'x', '+'}
     # Skip certain folders entirely
     skip_patterns = {'Templates', 'templates', 'Archive', 'archive', 'Archived'}
     
     for md_file in vault.rglob('*.md'):
-        # Skip hidden and excluded directories
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        # Skip ignored and non-vault content
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         # Skip already archived

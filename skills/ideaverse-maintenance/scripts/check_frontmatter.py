@@ -7,12 +7,18 @@ Checks for:
 - Missing 'up:' property (except for Home and root notes)
 - Missing 'created:' date
 - MOCs missing 'in:' property (strict mode)
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts and documentation files
+- Other non-vault content matching .gitignore
 """
 
 import re
 import sys
 import json
 from pathlib import Path
+from vault_utils import load_gitignore_patterns, is_vault_content, should_check_frontmatter
 
 def get_args():
     args = {
@@ -92,13 +98,17 @@ def parse_frontmatter(content):
 
 def check_frontmatter(vault_path, strict=False):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     issues = []
     
-    skip_dirs = {'.obsidian', '.git', '.github', 'x', '+'}
     root_notes = {'Home', 'Home Basic', 'Ideaverse Map'}
     
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
+            continue
+        
+        # Skip library files that don't need frontmatter
+        if not should_check_frontmatter(md_file, vault):
             continue
         
         try:

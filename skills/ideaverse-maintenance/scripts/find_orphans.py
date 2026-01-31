@@ -2,12 +2,19 @@
 """
 Find orphan notes - notes with no incoming links from other notes.
 Usage: python3 find_orphans.py [vault_path]
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts (dist/, build/, .next/, etc.)
+- Version control (.git/, .github/)
+- Other non-vault content matching .gitignore
 """
 
 import os
 import re
 import sys
 from pathlib import Path
+from vault_utils import load_gitignore_patterns, is_vault_content
 
 def get_vault_path():
     if len(sys.argv) > 1:
@@ -30,24 +37,21 @@ def extract_wikilinks(content):
 
 def find_orphans(vault_path):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     
-    # Collect all notes and their incoming links
+    # Collect all notes and their incoming links (vault content only)
     notes = {}  # filename (no ext) -> file path
     incoming_links = {}  # filename -> set of files that link to it
     
-    # Skip hidden folders and specific directories
-    skip_dirs = {'.obsidian', '.git', '.github', 'x', '+'}
-    
     for md_file in vault.rglob('*.md'):
-        # Skip hidden and excluded directories
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         note_name = md_file.stem
         notes[note_name] = md_file
         incoming_links[note_name] = set()
     
-    # Build incoming link graph
+    # Build incoming link graph (vault content only)
     for note_name, file_path in notes.items():
         try:
             content = file_path.read_text(encoding='utf-8')

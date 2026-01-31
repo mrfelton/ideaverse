@@ -5,6 +5,11 @@ Usage: python3 validate_squeeze_points.py [vault_path] [--threshold N] [--json]
 
 A squeeze point occurs when 10+ notes reference the same concept without
 a dedicated MOC to organize them. This script identifies these opportunities.
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts and documentation files
+- Other non-vault content matching .gitignore
 """
 
 import os
@@ -13,6 +18,7 @@ import sys
 import json
 from pathlib import Path
 from collections import defaultdict
+from vault_utils import load_gitignore_patterns, is_vault_content
 
 def get_args():
     args = {
@@ -70,12 +76,11 @@ def is_moc(note_name, file_path, existing_mocs):
 def find_existing_mocs(vault_path):
     """Build set of existing MOC names."""
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     mocs = set()
     
-    skip_dirs = {'.obsidian', '.git', '.github'}
-    
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         name = md_file.stem
@@ -95,12 +100,11 @@ def find_existing_mocs(vault_path):
 def find_existing_notes(vault_path):
     """Build set of all existing note names."""
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     notes = set()
     
-    skip_dirs = {'.obsidian', '.git', '.github'}
-    
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         notes.add(md_file.stem)
     
@@ -108,16 +112,16 @@ def find_existing_notes(vault_path):
 
 def validate_squeeze_points(vault_path, threshold):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     
     # Count references to each link target
     link_references = defaultdict(list)  # target -> list of source files
     
-    skip_dirs = {'.obsidian', '.git', '.github', 'x', '+'}
     existing_mocs = find_existing_mocs(vault_path)
     existing_notes = find_existing_notes(vault_path)
     
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         try:

@@ -5,6 +5,11 @@ Usage: python3 detect_moc_bloat.py [vault_path] [--threshold N] [--json]
 
 MOCs with 50+ links are considered bloated and should be split.
 Default threshold: 50 (warning at 40)
+
+This script audits only vault content, excluding:
+- node_modules/ directories (package dependencies)
+- Build artifacts and documentation files
+- Other non-vault content matching .gitignore
 """
 
 import os
@@ -12,6 +17,7 @@ import re
 import sys
 import json
 from pathlib import Path
+from vault_utils import load_gitignore_patterns, is_vault_content
 
 def get_args():
     args = {
@@ -79,12 +85,11 @@ def count_wikilinks(content):
 
 def detect_moc_bloat(vault_path, threshold, warning_threshold):
     vault = Path(vault_path)
+    ignore_patterns = load_gitignore_patterns(vault)
     results = []
     
-    skip_dirs = {'.obsidian', '.git', '.github', 'x', '+'}
-    
     for md_file in vault.rglob('*.md'):
-        if any(part.startswith('.') or part in skip_dirs for part in md_file.parts):
+        if not is_vault_content(md_file, vault, ignore_patterns):
             continue
         
         try:
