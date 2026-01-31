@@ -20,37 +20,33 @@ import re
 import sys
 import json
 from pathlib import Path
-from vault_utils import load_gitignore_patterns, is_vault_content
+from vault_utils import load_gitignore_patterns, is_vault_content, extract_wikilinks_set
+import argparse
 
 def get_args():
-    args = {
-        'vault_path': Path.cwd(),
-        'threshold': 50,
-        'warning_threshold': 40,
-        'json_output': False
-    }
-    
-    positional = []
-    i = 1
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-        if arg == '--threshold' and i + 1 < len(sys.argv):
-            args['threshold'] = int(sys.argv[i + 1])
-            args['warning_threshold'] = int(args['threshold'] * 0.8)
-            i += 2
-        elif arg == '--json':
-            args['json_output'] = True
-            i += 1
-        elif not arg.startswith('--'):
-            positional.append(arg)
-            i += 1
-        else:
-            i += 1
-    
-    if positional:
-        args['vault_path'] = Path(positional[0])
-    
-    return args
+    parser = argparse.ArgumentParser(
+        description='Detect MOC bloat - find Maps of Content with too many direct links.'
+    )
+    parser.add_argument(
+        'vault_path',
+        nargs='?',
+        type=Path,
+        default=Path.cwd(),
+        help='Path to vault (default: current directory)'
+    )
+    parser.add_argument(
+        '--threshold',
+        type=int,
+        default=50,
+        help='Link count to consider bloated (default: 50)'
+    )
+    parser.add_argument(
+        '--json',
+        action='store_true',
+        dest='json_output',
+        help='Output results as JSON'
+    )
+    return parser.parse_args()
 
 def is_moc(file_path, content):
     """Determine if a note is a Map of Content."""
@@ -70,25 +66,10 @@ def is_moc(file_path, content):
     
     return False
 
-def count_wikilinks(content):
-    """Count unique wikilinks in content (excluding frontmatter links)."""
-    # Remove frontmatter
-    if content.startswith('---'):
-        parts = content.split('---', 2)
-        if len(parts) >= 3:
-            content = parts[2]
-    
-    # Find all wikilinks
-    pattern = r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]'
-    links = set()
-    for match in re.finditer(pattern, content):
-        links.add(match.group(1).strip())
-    
-    return links
-
-def detect_moc_bloat(vault_path, threshold, warning_threshold):
+def detect_moc_bloat(vault_path, threshold):
     vault = Path(vault_path)
     ignore_patterns = load_gitignore_patterns(vault)
+    warning_threshold = int(threshold * 0.8)
     results = []
     
     for md_file in vault.rglob('*.md'):
@@ -101,7 +82,7 @@ def detect_moc_bloat(vault_path, threshold, warning_threshold):
             if not is_moc(md_file, content):
                 continue
             
-            links = count_wikilinks(content)
+            links = extract_wikilinks_set(content)
             link_count = len(links)
             
             if link_count >= warning_threshold:
@@ -114,7 +95,7 @@ def detect_moc_bloat(vault_path, threshold, warning_threshold):
                     'status': status
                 })
         
-        except Exception as e:
+        except (IOError, OSError, UnicodeDecodeError) as e:
             print(f"Error reading {md_file}: {e}", file=sys.stderr)
     
     # Sort by link count descending
@@ -124,35 +105,32 @@ def detect_moc_bloat(vault_path, threshold, warning_threshold):
 def main():
     args = get_args()
     
-    if not args['vault_path'].exists():
-        print(f"Error: Path does not exist: {args['vault_path']}", file=sys.stderr)
+    if not args.vault_path.exists():
+        print(f"Error: Path does not exist: {args.vault_path}", file=sys.stderr)
         sys.exit(1)
     
-    results = detect_moc_bloat(
-        args['vault_path'], 
-        args['threshold'], 
-        args['warning_threshold']
-    )
+    results = detect_moc_bloat(args.vault_path, args.threshold)
     
-    if args['json_output']:
+    if args.json_output:
         print(json.dumps(results, indent=2))
         sys.exit(1 if any(r['status'] == 'bloated' for r in results) else 0)
     
     if not results:
-        print(f"No MOC bloat detected (threshold: {args['threshold']} links).")
+        print(f"No MOC bloat detected (threshold: {args.threshold} links).")
         sys.exit(0)
     
     bloated = [r for r in results if r['status'] == 'bloated']
     warnings = [r for r in results if r['status'] == 'warning']
     
     if bloated:
-        print(f"🔴 BLOATED MOCs (>= {args['threshold']} links):\n")
+        print(f"🔴 BLOATED MOCs (>= {args.threshold} links):\n")
         for r in bloated:
             print(f"  {r['path']}: {r['link_count']} links")
         print()
     
     if warnings:
-        print(f"🟡 Warning (>= {args['warning_threshold']} links):\n")
+        warning_threshold = int(args.threshold * 0.8)
+        print(f"🟡 Warning (>= {warning_threshold} links):\n")
         for r in warnings:
             print(f"  {r['path']}: {r['link_count']} links")
         print()

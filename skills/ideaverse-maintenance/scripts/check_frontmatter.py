@@ -21,35 +21,32 @@ import re
 import sys
 import json
 from pathlib import Path
-from vault_utils import load_gitignore_patterns, is_vault_content, should_check_frontmatter
+from vault_utils import load_gitignore_patterns, is_vault_content, should_check_frontmatter, ROOT_NOTES
+import argparse
 
 def get_args():
-    args = {
-        'vault_path': Path.cwd(),
-        'strict': False,
-        'json_output': False
-    }
-    
-    positional = []
-    i = 1
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-        if arg == '--strict':
-            args['strict'] = True
-            i += 1
-        elif arg == '--json':
-            args['json_output'] = True
-            i += 1
-        elif not arg.startswith('--'):
-            positional.append(arg)
-            i += 1
-        else:
-            i += 1
-    
-    if positional:
-        args['vault_path'] = Path(positional[0])
-    
-    return args
+    parser = argparse.ArgumentParser(
+        description='Check for missing frontmatter properties in notes.'
+    )
+    parser.add_argument(
+        'vault_path',
+        nargs='?',
+        type=Path,
+        default=Path.cwd(),
+        help='Path to vault (default: current directory)'
+    )
+    parser.add_argument(
+        '--strict',
+        action='store_true',
+        help='Check MOCs for required "in" property'
+    )
+    parser.add_argument(
+        '--json',
+        action='store_true',
+        dest='json_output',
+        help='Output results as JSON'
+    )
+    return parser.parse_args()
 
 def parse_frontmatter(content):
     """Extract YAML frontmatter as dict."""
@@ -104,8 +101,6 @@ def check_frontmatter(vault_path, strict=False):
     ignore_patterns = load_gitignore_patterns(vault)
     issues = []
     
-    root_notes = {'Home', 'Home Basic', 'Ideaverse Map'}
-    
     for md_file in vault.rglob('*.md'):
         if not is_vault_content(md_file, vault, ignore_patterns):
             continue
@@ -138,7 +133,7 @@ def check_frontmatter(vault_path, strict=False):
                 })
             
             # Check: Missing 'up' property (except root notes and daily logs)
-            is_root = note_name in root_notes
+            is_root = note_name in ROOT_NOTES
             is_daily = 'Calendar' in rel_path and re.match(r'\d{4}-\d{2}-\d{2}', note_name)
             
             if not is_root and not is_daily:
@@ -162,7 +157,7 @@ def check_frontmatter(vault_path, strict=False):
                             'severity': 'info'
                         })
         
-        except Exception as e:
+        except (IOError, OSError, UnicodeDecodeError) as e:
             issues.append({
                 'path': str(md_file.relative_to(vault_path)),
                 'issue': f'read error: {e}',
@@ -174,13 +169,13 @@ def check_frontmatter(vault_path, strict=False):
 def main():
     args = get_args()
     
-    if not args['vault_path'].exists():
-        print(f"Error: Path does not exist: {args['vault_path']}", file=sys.stderr)
+    if not args.vault_path.exists():
+        print(f"Error: Path does not exist: {args.vault_path}", file=sys.stderr)
         sys.exit(1)
     
-    issues = check_frontmatter(args['vault_path'], args['strict'])
+    issues = check_frontmatter(args.vault_path, args.strict)
     
-    if args['json_output']:
+    if args.json_output:
         print(json.dumps(issues, indent=2))
         sys.exit(1 if issues else 0)
     

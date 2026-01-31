@@ -18,41 +18,39 @@ This script audits only vault content, excluding:
 - Other non-vault content matching .gitignore
 """
 
-import os
 import re
 import sys
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
-from vault_utils import load_gitignore_patterns, is_vault_content
+from vault_utils import load_gitignore_patterns, is_vault_content, extract_wikilinks
+import argparse
 
 def get_args():
-    args = {
-        'vault_path': Path.cwd(),
-        'stale_days': 180,
-        'json_output': False
-    }
-    
-    positional = []
-    i = 1
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-        if arg == '--days' and i + 1 < len(sys.argv):
-            args['stale_days'] = int(sys.argv[i + 1])
-            i += 2
-        elif arg == '--json':
-            args['json_output'] = True
-            i += 1
-        elif not arg.startswith('--'):
-            positional.append(arg)
-            i += 1
-        else:
-            i += 1
-    
-    if positional:
-        args['vault_path'] = Path(positional[0])
-    
-    return args
+    parser = argparse.ArgumentParser(
+        description='Suggest notes for archival based on staleness indicators.'
+    )
+    parser.add_argument(
+        'vault_path',
+        nargs='?',
+        type=Path,
+        default=Path.cwd(),
+        help='Path to vault (default: current directory)'
+    )
+    parser.add_argument(
+        '--days',
+        type=int,
+        default=180,
+        dest='stale_days',
+        help='Staleness threshold in days (default: 180)'
+    )
+    parser.add_argument(
+        '--json',
+        action='store_true',
+        dest='json_output',
+        help='Output results as JSON'
+    )
+    return parser.parse_args()
 
 def get_modification_date(file_path):
     """Get file modification date."""
@@ -75,13 +73,9 @@ def count_words(content):
     words = content.split()
     return len(words)
 
-def count_outgoing_links(content):
+def count_outgoing_links(content: str) -> int:
     """Count outgoing wikilinks."""
-    pattern = r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]'
-    links = set()
-    for match in re.finditer(pattern, content):
-        links.add(match.group(1).strip())
-    return len(links)
+    return len(set(extract_wikilinks(content)))
 
 def is_in_efforts(file_path, vault_path):
     """Check if file is in Efforts/ directory."""
@@ -172,7 +166,7 @@ def suggest_archival(vault_path, stale_days):
                 note_info['reasons'] = reasons
                 candidates.append(note_info)
         
-        except Exception as e:
+        except (IOError, OSError, UnicodeDecodeError) as e:
             print(f"Error reading {md_file}: {e}", file=sys.stderr)
     
     # Sort by staleness score descending
@@ -182,18 +176,18 @@ def suggest_archival(vault_path, stale_days):
 def main():
     args = get_args()
     
-    if not args['vault_path'].exists():
-        print(f"Error: Path does not exist: {args['vault_path']}", file=sys.stderr)
+    if not args.vault_path.exists():
+        print(f"Error: Path does not exist: {args.vault_path}", file=sys.stderr)
         sys.exit(1)
     
-    candidates = suggest_archival(args['vault_path'], args['stale_days'])
+    candidates = suggest_archival(args.vault_path, args.stale_days)
     
-    if args['json_output']:
+    if args.json_output:
         print(json.dumps(candidates, indent=2))
         sys.exit(0)
     
     if not candidates:
-        print(f"No archival candidates found (stale threshold: {args['stale_days']} days).")
+        print(f"No archival candidates found (stale threshold: {args.stale_days} days).")
         sys.exit(0)
     
     print(f"Found {len(candidates)} potential archival candidate(s):\n")

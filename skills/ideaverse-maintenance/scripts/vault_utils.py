@@ -10,18 +10,48 @@ Exclusions:
 - Built-in patterns for common non-vault content (node_modules, dist, etc.)
 
 Usage:
-    from vault_utils import load_gitignore_patterns, is_vault_content
+    from vault_utils import load_gitignore_patterns, is_vault_content, extract_wikilinks
     
     ignore_patterns = load_gitignore_patterns(vault_root)
     for md_file in vault_root.rglob('*.md'):
         if not is_vault_content(md_file, vault_root, ignore_patterns):
             continue
+        links = extract_wikilinks(md_file.read_text())
         # Process vault content
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Set
 import fnmatch
+import re
+
+# Shared constants
+ROOT_NOTES = {'Home', 'Home Basic', 'Ideaverse Map'}
+WIKILINK_PATTERN = r'\[\[([^\]|]+)(?:\|[^\]]+)?\]\]'
+
+
+def extract_wikilinks(content: str) -> List[str]:
+    """
+    Extract all wikilinks from content.
+    
+    Handles both [[Link]] and [[Link|Alias]] patterns.
+    Returns list of link targets (not aliases).
+    
+    Args:
+        content: File content as string
+    
+    Returns:
+        List of wikilink targets (deduplicated if same_dedup=True not passed)
+    """
+    links = []
+    for match in re.finditer(WIKILINK_PATTERN, content):
+        links.append(match.group(1).strip())
+    return links
+
+
+def extract_wikilinks_set(content: str) -> Set[str]:
+    """Extract unique wikilinks from content as a set."""
+    return set(extract_wikilinks(content))
 
 
 def load_gitignore_patterns(vault_root: Path) -> List[str]:
