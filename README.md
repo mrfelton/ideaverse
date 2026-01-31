@@ -64,17 +64,25 @@ Clone or download the repository and use the skill folders in [skills/](skills/)
 
 These scripts are zero-dependency and run with Python 3. They read your vault and report issues without modifying files.
 
-**Requirements**: Python 3.8+ recommended.
+**Requirements**: Python 3.8+ (no external dependencies required)
+
+Scripts are executable and can be run directly:
 
 ```bash
 # Frontmatter validation
-python3 skills/ideaverse-maintenance/scripts/check_frontmatter.py /path/to/vault
+./skills/ideaverse-maintenance/scripts/check_frontmatter.py /path/to/vault
 
-# Broken link detection
-python3 skills/ideaverse-maintenance/scripts/find_broken_links.py /path/to/vault
+# Broken link detection  
+./skills/ideaverse-maintenance/scripts/find_broken_links.py /path/to/vault
 
 # Orphan detection
-python3 skills/ideaverse-maintenance/scripts/find_orphans.py /path/to/vault
+./skills/ideaverse-maintenance/scripts/find_orphans.py /path/to/vault
+```
+
+Or invoke via `python3` (or `python` if it points to Python 3.x):
+
+```bash
+python3 skills/ideaverse-maintenance/scripts/check_frontmatter.py /path/to/vault
 ```
 
 For the full maintenance suite, see [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md).
