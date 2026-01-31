@@ -1,117 +1,72 @@
-# ideaverse
+# Ideaverse Skills
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-ideaverse is a set of Agent Skills for working with Ideaverse-based [Obsidian](https://obsidian.md) vaults. See [Ideaverse for Obsidian](https://start.linkingyourthinking.com/ideaverse-for-obsidian) for the source system. It codifies the ACE framework (Atlas/Calendar/Efforts), [LYT (Linking Your Thinking)](https://linkingyourthinking.com) conventions, and the ARC workflow (Add → Relate → Communicate) for capture, connection, and communication.
+Keep your [Obsidian](https://obsidian.md) vault organized, connected, and healthy using proven knowledge management systems. Built on the ACE framework (Atlas/Calendar/Efforts), [LYT (Linking Your Thinking)](https://linkingyourthinking.com) conventions, and the ARC workflow (Add - Relate - Communicate).
 
-## About
+## What you get
 
-This repository packages repeatable workflows, reference docs, and validation scripts that help keep Ideaverse-style vaults consistent, connected, and maintainable.
+Three complementary skills that work together:
 
-## Core concepts
+- **[ideaverse](skills/ideaverse/SKILL.md)** - Create notes, build MOCs, link concepts, maintain structure
+- **[ideaverse-enrichment](skills/ideaverse-enrichment/SKILL.md)** - Process articles and research, extract concepts, catch duplicates
+- **[ideaverse-maintenance](skills/ideaverse-maintenance/SKILL.md)** - Audit your vault, find broken links, identify orphaned notes
 
-- **ACE (Atlas/Calendar/Efforts)**: Organize by intention - knowledge, time, and active work
-- **ARC (Add/Relate/Communicate)**: Capture quickly, connect meaningfully, and express output
-- **MOCs**: Use Maps of Content as curated navigation layers
+## Effective workflows
 
-## Who this is for
+**Audit and identify gaps:**
 
-- People using [Obsidian](https://obsidian.md) vaults that follow Ideaverse conventions
-- Teams or agents that need repeatable workflows for capture, enrichment, and maintenance
-- Anyone who wants consistent frontmatter, MOCs, and linking patterns
+> Run a full vault audit. Show me squeeze points (concepts referenced 10+ times without a MOC) so I know where to build new structure
 
-## Features
+> Find all orphan notes in my vault. Tell me which ones could be linked to existing MOCs versus archived
 
-- Core methodology skill: [skills/ideaverse/SKILL.md](skills/ideaverse/SKILL.md)
-- Enrichment workflows: [skills/ideaverse-enrichment/SKILL.md](skills/ideaverse-enrichment/SKILL.md)
-- Maintenance workflows and diagnostics: [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md)
-- Reference docs and templates under each skill directory
-- Optional Python scripts for vault validation and health checks
+> Check my frontmatter compliance and identify notes missing required metadata
 
-## Repository layout
+**Assimilate knowledge systematically:**
 
-- [skills/ideaverse/SKILL.md](skills/ideaverse/SKILL.md) - Core Ideaverse methodology and conventions
-- [skills/ideaverse/references/](skills/ideaverse/references/) - Frontmatter and workflow references
-- [skills/ideaverse/assets/](skills/ideaverse/assets/) - Templates, including the daily log template
-- [skills/ideaverse-maintenance/scripts/](skills/ideaverse-maintenance/scripts/) - Maintenance scripts and diagnostics
-- [skills/ideaverse-enrichment/](skills/ideaverse-enrichment/) - Knowledge assimilation workflows and templates
-- [skills/ideaverse-maintenance/](skills/ideaverse-maintenance/) - Vault maintenance workflows and diagnostics
+> I've collected 8 research papers on event sourcing. Process them one by one: extract core concepts, classify each as principle/pattern/concept, check for duplicates before creating notes
 
-## Quick start
+> Add these bookmarks from my vault. For each: extract atomic concepts, check if they already exist, add to appropriate MOC with proper relationships
 
-1. Read the core methodology in [skills/ideaverse/SKILL.md](skills/ideaverse/SKILL.md).
-2. Use the ARC workflow reference at [skills/ideaverse/references/workflows.md](skills/ideaverse/references/workflows.md).
-3. If you are enriching a vault, follow [skills/ideaverse-enrichment/SKILL.md](skills/ideaverse-enrichment/SKILL.md).
-4. For vault health checks, use [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md).
+> Extract the actionable workflows from this article and create process notes linked to existing related concepts
+
+**Link and improve structure:**
+
+> I see Distributed Systems is referenced 34 times. Create a MOC for it, reorganize related notes underneath, and show me the new structure
+
+> Review my APIs MOC and identify child concepts that lack proper definition or are missing connections to related patterns
+
+> Find all notes linking to Microservices but not yet organized. Create hierarchy and add them to a coherent MOC
+
+**Maintain vault health:**
+
+> Find broken links introduced recently and fix them
+
+> Which notes haven't been touched in 3+ months and might be candidates for archival?
+
+> Show me if my MOCs are getting bloated (which ones exceed 50 links and should be split?)
 
 ## Installation
 
-Clone or download the repository and use the skill folders in [skills/](skills/). If your agent expects skills under .github/skills, copy the relevant skill folders there.
-
-## Example requests
-
-- “Create a new MOC and link these notes under it.”
-- “Process these article notes into atomic concepts and add them to the right MOCs.”
-- “Run a vault health check and summarize issues.”
-
-## Skill boundaries
-
-- [skills/ideaverse/SKILL.md](skills/ideaverse/SKILL.md): Core methodology, conventions, and daily usage
-- [skills/ideaverse-enrichment/SKILL.md](skills/ideaverse-enrichment/SKILL.md): Assimilating new knowledge and deduping concepts
-- [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md): Audits, diagnostics, and maintenance scripts
-
-## Scripts (optional)
-
-These scripts are zero-dependency and run with Python 3. They read your vault and report issues without modifying files.
-
-**Requirements**: Python 3.8+ (no external dependencies required)
-
-Scripts are executable and can be run directly:
+Use [skills.sh](https://skills.sh/) (no installation needed):
 
 ```bash
-# Frontmatter validation
-./skills/ideaverse-maintenance/scripts/check_frontmatter.py /path/to/vault
-
-# Broken link detection  
-./skills/ideaverse-maintenance/scripts/find_broken_links.py /path/to/vault
-
-# Orphan detection
-./skills/ideaverse-maintenance/scripts/find_orphans.py /path/to/vault
+npx skills add mrfelton/ideaverse
 ```
 
-Or invoke via `python3` (or `python` if it points to Python 3.x):
+## Getting started
 
-```bash
-python3 skills/ideaverse-maintenance/scripts/check_frontmatter.py /path/to/vault
-```
+- **New to ideaverse?** Start with [skills/ideaverse/SKILL.md](skills/ideaverse/SKILL.md) to learn the methodology
+- **Want to add content?** See [skills/ideaverse-enrichment/SKILL.md](skills/ideaverse-enrichment/SKILL.md) for knowledge assimilation
+- **Need to audit your vault?** Check [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md) for diagnostics
 
-For the full maintenance suite, see [skills/ideaverse-maintenance/SKILL.md](skills/ideaverse-maintenance/SKILL.md).
+Each skill file has everything you need: methodology, workflows, examples, and reference materials.
 
-## Templates
+## Learn more
 
-- Daily log template: [skills/ideaverse/assets/daily-log-template.md](skills/ideaverse/assets/daily-log-template.md)
-
-## Reference highlights
-
-- Core frontmatter specification: [skills/ideaverse/references/frontmatter.md](skills/ideaverse/references/frontmatter.md)
-- ARC workflow details: [skills/ideaverse/references/workflows.md](skills/ideaverse/references/workflows.md)
-- Enrichment workflows: [skills/ideaverse-enrichment/references/enrichment-workflow.md](skills/ideaverse-enrichment/references/enrichment-workflow.md)
-- Knowledge classification: [skills/ideaverse-enrichment/references/knowledge-classification.md](skills/ideaverse-enrichment/references/knowledge-classification.md)
-- Duplicate detection: [skills/ideaverse-enrichment/references/duplicate-detection.md](skills/ideaverse-enrichment/references/duplicate-detection.md)
-- Extraction templates: [skills/ideaverse-enrichment/references/extraction-templates.md](skills/ideaverse-enrichment/references/extraction-templates.md)
-- Vault hygiene guidance: [skills/ideaverse-maintenance/references/vault-hygiene.md](skills/ideaverse-maintenance/references/vault-hygiene.md)
-- Troubleshooting: [skills/ideaverse-maintenance/references/troubleshooting.md](skills/ideaverse-maintenance/references/troubleshooting.md)
-
-## External resources
-
-- Ideaverse for Obsidian: https://start.linkingyourthinking.com/ideaverse-for-obsidian
-- Linking Your Thinking (LYT): https://linkingyourthinking.com
-- Obsidian app: https://obsidian.md
-- Obsidian help docs: https://help.obsidian.md
-
-## Contributing
-
-Issues and pull requests are welcome. Focus on clarity, correctness, and keeping skills concise.
+- [Ideaverse for Obsidian](https://start.linkingyourthinking.com/ideaverse-for-obsidian) - Official system documentation
+- [Linking Your Thinking](https://linkingyourthinking.com) - LYT methodology
+- [Obsidian](https://obsidian.md) - The note-taking app
 
 ## License
 
